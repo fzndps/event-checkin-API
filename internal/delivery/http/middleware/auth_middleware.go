@@ -34,7 +34,7 @@ func (m *AuthMiddleware) AuthRequired() gin.HandlerFunc {
 		parts := strings.Split(authHeader, " ")
 
 		// Validasi format harus ada 2 parts dan parts pertama harus berisi "Bearer"
-		if len(parts) != 2 || parts[0] == "Bearer" {
+		if len(parts) != 2 || parts[0] != "Bearer" {
 			validator.UnauthorizedResponse(c, "Invalid authorization format.")
 			c.Abort()
 			return
@@ -46,14 +46,14 @@ func (m *AuthMiddleware) AuthRequired() gin.HandlerFunc {
 		// ValidateJWT dari validator akan mengecek token masih valid dan belum expired
 		claims, err := m.jwtManager.ValidateToken(tokenString)
 		if err != nil {
-			validator.UnauthorizedResponse(c, "Invalid or expired token")
+			validator.UnauthorizedResponse(c, err.Error())
 			c.Abort()
 			return
 		}
 
 		// c.Set untuk menyimpan data ke context dan bisa di ambil
 		// dihandler untuk mengetahui siapa yang login dengan c.Get
-		c.Set("orgnaizer_id", claims.OrganizerID)
+		c.Set("organizer_id", claims.OrganizerID)
 		c.Set("organizer_email", claims.Email)
 
 		// Lanjut ke middleware/handler berikutnya

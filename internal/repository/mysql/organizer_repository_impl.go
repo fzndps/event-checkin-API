@@ -30,7 +30,7 @@ func (r *organizerRepositoryImpl) Create(ctx context.Context, organizer *domain.
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("failed to get last insert id user: %w", err)
+		return fmt.Errorf("failed to get last insert id organizer: %w", err)
 	}
 
 	organizer.ID = int(id)
@@ -54,7 +54,7 @@ func (r *organizerRepositoryImpl) GetByEmail(ctx context.Context, email string) 
 		if err == sql.ErrNoRows {
 			return nil, errors.New("user not found")
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return nil, fmt.Errorf("failed to get organizer: %w", err)
 	}
 
 	return organizer, nil

@@ -33,7 +33,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			return
 		}
 
-		validator.InternalServerErrorResponse(c, "Failed to register")
+		validator.InternalServerErrorResponse(c, err.Error())
 		return
 	}
 

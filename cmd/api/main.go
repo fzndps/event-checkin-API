@@ -25,9 +25,11 @@ func main() {
 		log.Fatal("Failed to connect database:", err)
 	}
 
-	db.Close()
+	defer db.Close()
 
-	jwtManager := jwt.NewJWTManager(cfg.JWT.Secret, time.Duration(cfg.JWT.Expiry))
+	duration := time.Duration(cfg.JWT.Expiry) * time.Hour
+
+	jwtManager := jwt.NewJWTManager(cfg.JWT.Secret, duration)
 
 	organizerRepo := mysql.NewOrganizerRepositoryImpl(db)
 

@@ -30,7 +30,7 @@ func (u *AuthUsecase) Register(ctx context.Context, req *domain.RegisterRequest)
 		return nil, errors.New("email already registered")
 	}
 
-	hashedPassword, err := hash.HashPasswors(req.PasswordHash)
+	hashedPassword, err := hash.HashPassword(req.PasswordHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %v", err)
 	}
