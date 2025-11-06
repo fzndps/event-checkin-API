@@ -73,13 +73,12 @@ func (r *participantRepository) BulkCreate(ctx context.Context, participants []*
 	valueArgs := make([]interface{}, 0, len(participants)*7) // 7 kolom
 
 	for _, p := range participants {
-		valueStrings = append(valueStrings, "(?, ?, ?, ?, ?, ?, NOW())")
+		valueStrings = append(valueStrings, "(?, ?, ?, ?, ?, ?, ?, NOW())")
 		valueArgs = append(valueArgs,
 			p.EventID,
 			p.Name,
 			p.Email,
 			p.Phone,
-			p.QRToken,
 			p.QRToken,
 			false, // checked in default dibuat false
 			nil,   // checked in at default dibuat null
@@ -89,7 +88,7 @@ func (r *participantRepository) BulkCreate(ctx context.Context, participants []*
 	query := fmt.Sprintf(`
 		INSERT INTO participants (
 		event_id, name, email, phone, qr_token,
-		checked_in, created_at
+		checked_in, checked_in_at, created_at
 		) VALUES %s
 	`, strings.Join(valueStrings, ","))
 
@@ -192,7 +191,7 @@ func (r *participantRepository) GetByQRToken(ctx context.Context, qrToken string
 
 // CountByEventID menghitung jumlah participant di event
 func (r *participantRepository) CountByEventID(ctx context.Context, eventID string) (int, error) {
-	query := `SELECT COUNT(*) FROM participant WHERE event_id = ?`
+	query := `SELECT COUNT(*) FROM participants WHERE event_id = ?`
 
 	var count int
 	err := r.db.QueryRowContext(ctx, query, eventID).Scan(&count)
@@ -205,7 +204,7 @@ func (r *participantRepository) CountByEventID(ctx context.Context, eventID stri
 
 // CountCheckedInByEventID menghitung jumlah participant yang sudah check-in
 func (r *participantRepository) CountCheckedInByEventID(ctx context.Context, eventID string) (int, error) {
-	query := `SELECT COUNT(*) FROM participant WHERE event_id = ? AND checked_in = TRUE`
+	query := `SELECT COUNT(*) FROM participants WHERE event_id = ? AND checked_in = TRUE`
 
 	var count int
 	err := r.db.QueryRowContext(ctx, query, eventID).Scan(&count)
@@ -246,5 +245,5 @@ func (r *participantRepository) DeleteByEventID(ctx context.Context, eventID str
 	query := `DELETE FROM participants WHERE event_id = ?`
 	_, err := r.db.ExecContext(ctx, query, eventID)
 
-	return fmt.Errorf("failed to delete participants: %v", err)
+	return err
 }

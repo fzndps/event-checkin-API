@@ -9,7 +9,7 @@ import (
 	"github.com/fzndps/eventcheck/internal/domain"
 )
 
-func ParserParticipant(reader io.Reader) ([]*domain.Participant, []string, error) {
+func ParseParticipants(reader io.Reader) ([]*domain.Participant, []string, error) {
 	csvReader := csv.NewReader(reader)
 
 	// Mmembaca header row

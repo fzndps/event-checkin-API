@@ -21,8 +21,11 @@ func NewEventRepository(db *sql.DB) repository.EventRepository {
 
 // Create menyimpan event baru ke database
 func (r *eventRepository) Create(ctx context.Context, event *domain.Event) error {
-	query := `INSERT INTO events (id, organizer_id, name, slug, date, venue, participant_count, total_price, payment_status, payment_proof_url, scanner_pin, created_at) 
-	VAUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`
+	query := `INSERT INTO events (
+			id, organizer_id, name, slug, date, venue, 
+			participant_count, total_price, payment_status, 
+			payment_proof_url, scanner_pin, created_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`
 
 	_, err := r.db.ExecContext(ctx, query,
 		event.ID,
@@ -196,7 +199,7 @@ func (r *eventRepository) GetByOrganizerID(ctx context.Context, organizerID int6
 // Update mengupdate data event
 func (r *eventRepository) Update(ctx context.Context, event *domain.Event) error {
 	query := `
-		UPDATE event SET
+		UPDATE events SET
 			name = ?,
 			slug = ?,
 			date = ?,

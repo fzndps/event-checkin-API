@@ -17,7 +17,7 @@ type EventUsecase struct {
 	participanRepo repository.ParticipantRepository
 }
 
-func NewEventRepository(eventRepo repository.EventRepository, participantRepo repository.ParticipantRepository) *EventUsecase {
+func NewEventUsecase(eventRepo repository.EventRepository, participantRepo repository.ParticipantRepository) *EventUsecase {
 	return &EventUsecase{
 		eventRepo:      eventRepo,
 		participanRepo: participantRepo,

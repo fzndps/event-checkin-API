@@ -21,7 +21,7 @@ func Generate(input string) string {
 
 	// Menghilangkan multiple dash (--- menjadi -)
 	reg = regexp.MustCompile("-+")
-	slug = reg.ReplaceAllString(slug, "")
+	slug = reg.ReplaceAllString(slug, "-")
 
 	// Trim dash awal dan akhir
 	slug = strings.Trim(slug, "-")

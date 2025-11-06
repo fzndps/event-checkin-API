@@ -41,7 +41,7 @@ func (u *ParticipantUsecase) UploadParticipants(
 	}
 
 	// Parse CSV
-	participants, parseError, err := csv.ParserParticipant(csvReader)
+	participants, parseError, err := csv.ParseParticipants(csvReader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse csd: %w", err)
 	}

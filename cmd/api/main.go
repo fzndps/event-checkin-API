@@ -28,16 +28,25 @@ func main() {
 
 	jwtManager := jwt.NewJWTManager(cfg.JWT.Secret)
 
+	// initialize repo layer
 	organizerRepo := mysql.NewOrganizerRepositoryImpl(db)
+	eventRepo := mysql.NewEventRepository(db)
+	participantRepo := mysql.NewParticipantRepository(db)
 
+	// Initialize service/usecase layer
 	authUsecase := usecase.NewAuthUsecase(organizerRepo, jwtManager, cfg)
+	eventUsecase := usecase.NewEventUsecase(eventRepo, participantRepo)
+	participantUsecase := usecase.NewParticipantUsecase(eventRepo, participantRepo)
 
+	// initialize handler layer
 	authHandler := http.NewAutHandler(authUsecase)
+	eventHandler := http.NewEventHandler(*eventUsecase, participantUsecase)
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager)
 
 	router := http.SetupRouter(&http.RouterConfig{
 		AuthHandler:    authHandler,
+		EventHandler:   eventHandler,
 		AuthMiddleware: authMiddleware,
 	})
 

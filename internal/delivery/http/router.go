@@ -9,6 +9,7 @@ import (
 
 type RouterConfig struct {
 	AuthHandler    *AuthHandler
+	EventHandler   *EventHandler
 	AuthMiddleware *middleware.AuthMiddleware
 }
 
@@ -32,6 +33,18 @@ func SetupRouter(cfg *RouterConfig) *gin.Engine {
 			auth.POST("/login", cfg.AuthHandler.Login)
 
 			auth.GET("/profile", cfg.AuthMiddleware.AuthRequired(), cfg.AuthHandler.GetProfile)
+		}
+
+		events := v1.Group("/events")
+		events.Use(cfg.AuthMiddleware.AuthRequired())
+		{
+			events.POST("", cfg.EventHandler.CreateEvent)
+			events.GET("", cfg.EventHandler.ListEvents)
+			events.GET("/:eventID", cfg.EventHandler.GetEventDetail)
+			events.PUT("/:eventID", cfg.EventHandler.UpdateEvent)
+			events.DELETE("/:eventID", cfg.EventHandler.DeleteEvent)
+			events.POST("/:eventID/participants/upload", cfg.EventHandler.UploadParticipants)
+			events.GET("/:eventID/participants", cfg.EventHandler.ListParticipant)
 		}
 	}
 
