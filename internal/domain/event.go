@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+)
 
 // Entity event
 type Event struct {
@@ -30,17 +34,17 @@ const (
 
 // DTO create event
 type CreateEventRequest struct {
-	Name             string    `json:"name" binding:"required,min=3,max=255"`
-	Date             time.Time `json:"date" binding:"required"`
-	Venue            string    `json:"venue" binding:"required,min=5,max=500"`
-	ParticipantCount int       `json:"participant_count" binding:"required,min=1"`
+	Name             string     `json:"name" binding:"required,min=3,max=255"`
+	Date             CustomDate `json:"date" binding:"required"`
+	Venue            string     `json:"venue" binding:"required,min=5,max=500"`
+	ParticipantCount int        `json:"participant_count" binding:"required,min=1"`
 }
 
 // DTO update event
 type UpdateEventRequest struct {
-	Name  string    `json:"name" binding:"omitempty,required,min=3,max=255"`
-	Date  time.Time `json:"date" binding:"required"`
-	Venue string    `json:"venue" binding:"omitempty,required,min=5,max=500"`
+	Name  string      `json:"name" binding:"omitempty,required,min=3,max=255"`
+	Date  *CustomDate `json:"date" binding:"required"`
+	Venue string      `json:"venue" binding:"omitempty,required,min=5,max=500"`
 }
 
 // Response list event
@@ -63,10 +67,35 @@ type EventDetailResponse struct {
 // Melakukan validasi untuk event
 func (r *CreateEventRequest) Validate() error {
 	// Event date tidak boleh di masalalu
-	if r.Date.Before(time.Now()) {
+	if r.Date.Time.Before(time.Now()) {
 		return ErrInvalidEventDate
 	}
 
+	return nil
+}
+
+// CustomDate adalah wrapper untuk time.Time
+type CustomDate struct {
+	time.Time
+}
+
+const customLayout = "02-01-2006" // Layout DD-MM-YYYY
+
+// UnmarshalJSON memberi tahu Tipe CustomDate cara parsing string JSON
+func (cd *CustomDate) UnmarshalJSON(b []byte) error {
+	// b adalah string JSON, misal: "29-12-2025" (termasuk tanda kutip)
+	s := strings.Trim(string(b), "\"")
+	if s == "null" {
+		return nil
+	}
+
+	// Parse string menggunakan layout kustom Anda
+	t, err := time.Parse(customLayout, s)
+	if err != nil {
+		return fmt.Errorf("gagal parsing tanggal: %v. Gunakan format %s", err, customLayout)
+	}
+
+	cd.Time = t
 	return nil
 }
 

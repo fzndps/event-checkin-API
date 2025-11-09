@@ -67,7 +67,7 @@ func (u *EventUsecase) CreateEvent(
 		OrganizerID:      int64(organizerID),
 		Name:             req.Name,
 		Slug:             eventSlug,
-		Date:             req.Date,
+		Date:             req.Date.Time,
 		Venue:            req.Venue,
 		ParticipantCount: req.ParticipantCount,
 		TotalPrice:       totalPrice,
@@ -196,7 +196,7 @@ func (u *EventUsecase) UpdateEvent(
 		if newSlug != event.Slug {
 			// cek apakah slug baru sudah ada
 			existingEvent, err := u.eventRepo.GetBySlug(ctx, newSlug)
-			if err != nil && errors.Is(err, domain.ErrEventNotFound) {
+			if err != nil && !errors.Is(err, domain.ErrEventNotFound) {
 				return nil, fmt.Errorf("failed to get new slug: %w", err)
 			}
 
@@ -209,7 +209,7 @@ func (u *EventUsecase) UpdateEvent(
 	}
 
 	if !req.Date.IsZero() {
-		event.Date = req.Date
+		event.Date = req.Date.Time
 	}
 
 	if req.Venue != "" {
