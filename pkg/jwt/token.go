@@ -14,18 +14,16 @@ type JWTClaims struct {
 }
 
 type JWTManager struct {
-	secretKey     string
-	tokenDuration time.Duration
+	secretKey string
 }
 
-func NewJWTManager(secretKey string, tokenDuration time.Duration) *JWTManager {
+func NewJWTManager(secretKey string) *JWTManager {
 	return &JWTManager{
-		secretKey:     secretKey,
-		tokenDuration: tokenDuration,
+		secretKey: secretKey,
 	}
 }
 
-func (m *JWTManager) GenerateToken(organizerID int, email string) (string, error) {
+func (m *JWTManager) GenerateToken(organizerID int, email string, expiryHours int) (string, error) {
 
 	if len(m.secretKey) == 0 {
 		return "", errors.New("JWT secret not initialize")
@@ -35,7 +33,7 @@ func (m *JWTManager) GenerateToken(organizerID int, email string) (string, error
 		OrganizerID: organizerID,
 		Email:       email,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(m.tokenDuration)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(expiryHours))),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
@@ -76,11 +74,11 @@ func (m *JWTManager) ValidateToken(tokenString string) (*JWTClaims, error) {
 	return claims, nil
 }
 
-func (m *JWTManager) RefreshToken(oldTokenString string, expiryHourd int) (string, error) {
+func (m *JWTManager) RefreshToken(oldTokenString string, expiryHours int) (string, error) {
 	claims, err := m.ValidateToken(oldTokenString)
 	if err != nil {
 		return "", err
 	}
 
-	return m.GenerateToken(claims.OrganizerID, claims.Email)
+	return m.GenerateToken(claims.OrganizerID, claims.Email, expiryHours)
 }

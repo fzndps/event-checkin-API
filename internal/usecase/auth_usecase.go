@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fzndps/eventcheck/config"
 	"github.com/fzndps/eventcheck/internal/domain"
 	"github.com/fzndps/eventcheck/internal/domain/repository"
 	"github.com/fzndps/eventcheck/pkg/hash"
@@ -15,12 +16,14 @@ import (
 type AuthUsecase struct {
 	organizerRepo repository.OrganizerRepository
 	jwtManager    *jwt.JWTManager
+	cfg           *config.Config
 }
 
-func NewAuthUsecase(organizerRepo repository.OrganizerRepository, jwtManager *jwt.JWTManager) *AuthUsecase {
+func NewAuthUsecase(organizerRepo repository.OrganizerRepository, jwtManager *jwt.JWTManager, cfg *config.Config) *AuthUsecase {
 	return &AuthUsecase{
 		organizerRepo: organizerRepo,
 		jwtManager:    jwtManager,
+		cfg:           cfg,
 	}
 }
 
@@ -30,7 +33,7 @@ func (u *AuthUsecase) Register(ctx context.Context, req *domain.RegisterRequest)
 		return nil, errors.New("email already registered")
 	}
 
-	hashedPassword, err := hash.HashPasswors(req.PasswordHash)
+	hashedPassword, err := hash.HashPassword(req.PasswordHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %v", err)
 	}
@@ -65,7 +68,7 @@ func (u *AuthUsecase) Login(ctx context.Context, req *domain.LoginRequest) (*dom
 		return nil, errors.New("invalid email or password")
 	}
 
-	token, err := u.jwtManager.GenerateToken(organizer.ID, organizer.Email)
+	token, err := u.jwtManager.GenerateToken(organizer.ID, organizer.Email, u.cfg.JWT.Expiry)
 	if err != nil {
 		return nil, err
 	}

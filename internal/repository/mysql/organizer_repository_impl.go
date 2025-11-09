@@ -24,13 +24,16 @@ func (r *organizerRepositoryImpl) Create(ctx context.Context, organizer *domain.
 	query := "INSERT INTO organizers (email, name, password_hash, created_at) VALUE (?, ?, ?, NOW())"
 
 	result, err := r.db.ExecContext(ctx, query, organizer.Email, organizer.Name, organizer.PasswordHash)
+
 	if err != nil {
-		return fmt.Errorf("failed to insert organizer: %w", err)
+		if isDuplicateKeyError(err) {
+			return fmt.Errorf("email already exists: %v", err)
+		}
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("failed to get last insert id user: %w", err)
+		return fmt.Errorf("failed to get last insert id organizer: %w", err)
 	}
 
 	organizer.ID = int(id)
@@ -54,7 +57,7 @@ func (r *organizerRepositoryImpl) GetByEmail(ctx context.Context, email string) 
 		if err == sql.ErrNoRows {
 			return nil, errors.New("user not found")
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return nil, fmt.Errorf("failed to get organizer: %w", err)
 	}
 
 	return organizer, nil

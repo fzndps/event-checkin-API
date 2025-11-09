@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/fzndps/eventcheck/config"
 	"github.com/fzndps/eventcheck/internal/delivery/http"
@@ -25,20 +24,29 @@ func main() {
 		log.Fatal("Failed to connect database:", err)
 	}
 
-	db.Close()
+	defer db.Close()
 
-	jwtManager := jwt.NewJWTManager(cfg.JWT.Secret, time.Duration(cfg.JWT.Expiry))
+	jwtManager := jwt.NewJWTManager(cfg.JWT.Secret)
 
+	// initialize repo layer
 	organizerRepo := mysql.NewOrganizerRepositoryImpl(db)
+	eventRepo := mysql.NewEventRepository(db)
+	participantRepo := mysql.NewParticipantRepository(db)
 
-	authUsecase := usecase.NewAuthUsecase(organizerRepo, jwtManager)
+	// Initialize service/usecase layer
+	authUsecase := usecase.NewAuthUsecase(organizerRepo, jwtManager, cfg)
+	eventUsecase := usecase.NewEventUsecase(eventRepo, participantRepo)
+	participantUsecase := usecase.NewParticipantUsecase(eventRepo, participantRepo)
 
+	// initialize handler layer
 	authHandler := http.NewAutHandler(authUsecase)
+	eventHandler := http.NewEventHandler(*eventUsecase, participantUsecase)
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager)
 
 	router := http.SetupRouter(&http.RouterConfig{
 		AuthHandler:    authHandler,
+		EventHandler:   eventHandler,
 		AuthMiddleware: authMiddleware,
 	})
 
