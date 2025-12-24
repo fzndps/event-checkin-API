@@ -13,7 +13,7 @@ type Config struct {
 	Database DatabaseConfig
 	App      AppConfig
 	JWT      JWTConfig
-	Email    EmailConfig
+	Email    SMTPConfig
 }
 
 type DatabaseConfig struct {
@@ -33,7 +33,7 @@ type JWTConfig struct {
 	Expiry int
 }
 
-type EmailConfig struct {
+type SMTPConfig struct {
 	SMTPHost     string
 	SMTPPort     int
 	SMTPUsername string
@@ -64,7 +64,7 @@ func LoadConfig(filenames ...string) (*Config, error) {
 			Expiry: getEnvAsInt("JWT_EXPIRY", 72),
 		},
 
-		Email: EmailConfig{
+		Email: SMTPConfig{
 			SMTPHost:     os.Getenv("SMTP_HOST"),
 			SMTPPort:     getEnvAsInt("SMTP_PORT", 578),
 			SMTPUsername: os.Getenv("SMTP_USERNAME"),
