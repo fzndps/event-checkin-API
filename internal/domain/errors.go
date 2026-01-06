@@ -15,4 +15,9 @@ var (
 	ErrInvalidEventDate   = errors.New("invalid event date (cannot be in the past)")
 	ErrSlugAlreadyExists  = errors.New("event slug already in use")
 	ErrUnauthorizedAccess = errors.New("you do not have access to this event")
+
+	//General errors
+	ErrNotFound       = errors.New("data tidak ditemukan")
+	ErrInternalServer = errors.New("terjadi kesalahan server")
+	ErrBadRequest     = errors.New("request tidak valid")
 )

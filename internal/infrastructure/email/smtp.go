@@ -2,35 +2,44 @@ package email
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"mime/multipart"
 	"mime/quotedprintable"
 	"net/smtp"
 	"net/textproto"
-	"strings"
 
 	"github.com/fzndps/eventcheck/config"
 )
+
+// SMTPConfig adalah konfigurasi untuk SMTP email
+// type SMTPConfig struct {
+// 	Host     string
+// 	Port     string
+// 	Username string
+// 	Password string
+// 	From     string
+// }
 
 // EmailService adalah service untuk mengirim email
 type EmailService struct {
 	config *config.SMTPConfig
 }
 
-// NewEmailService constructor untuk email service
+// NewEmailService constructor
 func NewEmailService(config *config.SMTPConfig) *EmailService {
 	return &EmailService{
 		config: config,
 	}
 }
 
-// EmailData untuk compose email
+// EmailData adalah data untuk compose email
 type EmailData struct {
-	To          string
-	Subject     string
-	Body        string
-	Attachments map[string][]byte
-	IsHTML      bool
+	To          string            // Recipient email
+	Subject     string            // Email subject
+	Body        string            // Email body (HTML or plain text)
+	Attachments map[string][]byte // Attachments: filename -> content
+	IsHTML      bool              // True jika body adalah HTML
 }
 
 // SendEmail mengirim email dengan optional attachments
@@ -85,6 +94,8 @@ func (s *EmailService) composeMessage(data *EmailData) ([]byte, error) {
 			}
 		}
 
+		writer.Close()
+
 	} else {
 		// Email without attachments (simple)
 		if data.IsHTML {
@@ -92,12 +103,13 @@ func (s *EmailService) composeMessage(data *EmailData) ([]byte, error) {
 		} else {
 			buf.WriteString("Content-Type: text/plain; charset=UTF-8\r\n")
 		}
+		buf.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
 		buf.WriteString("\r\n")
-		buf.WriteString(data.Body)
-	}
 
-	if len(data.Attachments) > 0 {
-		writer.Close()
+		// Write body dengan quoted-printable encoding
+		qpWriter := quotedprintable.NewWriter(&buf)
+		qpWriter.Write([]byte(data.Body))
+		qpWriter.Close()
 	}
 
 	return buf.Bytes(), nil
@@ -142,48 +154,23 @@ func (s *EmailService) writeAttachmentPart(writer *multipart.Writer, filename st
 		return err
 	}
 
-	// Write attachment dengan base64 encoding
-	encoded := s.encodeBase64(content)
-	attachPart.Write([]byte(encoded))
+	// Write attachment dengan base64 encoding (proper format)
+	encoded := base64.StdEncoding.EncodeToString(content)
+
+	// Add line breaks every 76 characters (RFC 2045)
+	for i := 0; i < len(encoded); i += 76 {
+		end := i + 76
+		if end > len(encoded) {
+			end = len(encoded)
+		}
+		attachPart.Write([]byte(encoded[i:end]))
+		attachPart.Write([]byte("\r\n"))
+	}
 
 	return nil
 }
 
-// encodeBase64 encode bytes ke base64 dengan line breaks setiap 76 karakter
-func (s *EmailService) encodeBase64(data []byte) string {
-	const lineLength = 76
-
-	// Encode to base64
-	encoded := make([]byte, len(data)*2)
-	n := len(encoded)
-	for i := 0; i < len(data); i += 3 {
-		end := i + 3
-		if end > len(data) {
-			end = len(data)
-		}
-
-		chunk := data[i:end]
-		encodedChunk := []byte(fmt.Sprintf("%x", chunk))
-		copy(encoded[i*2:], encodedChunk)
-	}
-	encoded = encoded[:n]
-
-	// Add line breaks
-	var result strings.Builder
-	for i := 0; i < len(encoded); i += lineLength {
-		end := i + lineLength
-		if end > len(encoded) {
-			end = len(encoded)
-		}
-		result.Write(encoded[i:end])
-		result.WriteString("\r\n")
-	}
-
-	return result.String()
-}
-
 // SendBulkEmails mengirim email ke multiple recipients
-// Return: success count, failed count, errors
 func (s *EmailService) SendBulkEmails(emails []*EmailData) (int, int, []error) {
 	var successCount, failedCount int
 	var errors []error

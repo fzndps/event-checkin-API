@@ -27,7 +27,7 @@ func NewEventUsecase(eventRepo repository.EventRepository, participantRepo repos
 // Menangani untuk create event
 func (u *EventUsecase) CreateEvent(
 	ctx context.Context,
-	organizerID int,
+	organizerID int64,
 	req *domain.CreateEventRequest,
 ) (*domain.Event, error) {
 	// validasi input

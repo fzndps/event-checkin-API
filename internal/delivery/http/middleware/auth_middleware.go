@@ -62,7 +62,7 @@ func (m *AuthMiddleware) AuthRequired() gin.HandlerFunc {
 }
 
 // GetUserID untuk mengambil userID
-func GetUserID(c *gin.Context) (int, bool) {
+func GetOrganizerID(c *gin.Context) (int64, bool) {
 	// Ambil data dari context
 	organizerID, exists := c.Get("organizer_id")
 	if !exists {
@@ -70,7 +70,7 @@ func GetUserID(c *gin.Context) (int, bool) {
 	}
 
 	// Convert nilai interface/any ke int
-	id, ok := organizerID.(int)
+	id, ok := organizerID.(int64)
 	if !ok {
 		return 0, false
 	}

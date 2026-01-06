@@ -36,7 +36,7 @@ func (r *organizerRepositoryImpl) Create(ctx context.Context, organizer *domain.
 		return fmt.Errorf("failed to get last insert id organizer: %w", err)
 	}
 
-	organizer.ID = int(id)
+	organizer.ID = int64(id)
 
 	return nil
 }
@@ -63,7 +63,7 @@ func (r *organizerRepositoryImpl) GetByEmail(ctx context.Context, email string) 
 	return organizer, nil
 }
 
-func (r *organizerRepositoryImpl) GetByID(ctx context.Context, id int) (*domain.Organizer, error) {
+func (r *organizerRepositoryImpl) GetByID(ctx context.Context, id int64) (*domain.Organizer, error) {
 	organizer := &domain.Organizer{}
 	query := "SELECT id, email, name, password_hash, created_at FROM organizers WHERE id = ?"
 

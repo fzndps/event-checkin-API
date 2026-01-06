@@ -24,7 +24,7 @@ func NewEventHandler(eventUsecase usecase.EventUsecase, participantUsecase *usec
 
 func (h *EventHandler) CreateEvent(c *gin.Context) {
 	// Dapatkan organizer id dari context
-	organizerID, exists := middleware.GetUserID(c)
+	organizerID, exists := middleware.GetOrganizerID(c)
 	if !exists {
 		validator.UnauthorizedResponse(c, "User not authenticated")
 		return
@@ -48,7 +48,7 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 
 func (h *EventHandler) ListEvents(c *gin.Context) {
 	// Dapatkan organizer id dari context
-	organizerID, exists := middleware.GetUserID(c)
+	organizerID, exists := middleware.GetOrganizerID(c)
 	if !exists {
 		validator.UnauthorizedResponse(c, "User not authenticated")
 		return
@@ -70,7 +70,7 @@ func (h *EventHandler) ListEvents(c *gin.Context) {
 
 func (h *EventHandler) GetEventDetail(c *gin.Context) {
 	// Dapatkan organizer id dari context
-	organizerID, exists := middleware.GetUserID(c)
+	organizerID, exists := middleware.GetOrganizerID(c)
 	if !exists {
 		validator.UnauthorizedResponse(c, "User not authenticated")
 		return
@@ -91,7 +91,7 @@ func (h *EventHandler) GetEventDetail(c *gin.Context) {
 
 func (h *EventHandler) UpdateEvent(c *gin.Context) {
 	// Dapatkan organizer id dari context
-	organizerID, exists := middleware.GetUserID(c)
+	organizerID, exists := middleware.GetOrganizerID(c)
 	if !exists {
 		validator.UnauthorizedResponse(c, "User not authenticated")
 		return
@@ -118,7 +118,7 @@ func (h *EventHandler) UpdateEvent(c *gin.Context) {
 
 func (h *EventHandler) DeleteEvent(c *gin.Context) {
 	// Dapatkan organizer id dari context
-	organizerID, exists := middleware.GetUserID(c)
+	organizerID, exists := middleware.GetOrganizerID(c)
 	if !exists {
 		validator.UnauthorizedResponse(c, "User not authenticated")
 		return
@@ -144,7 +144,7 @@ func (h *EventHandler) DeleteEvent(c *gin.Context) {
 
 func (h *EventHandler) UploadParticipants(c *gin.Context) {
 	// Dapatkan organizer id dari context
-	organizerID, exists := middleware.GetUserID(c)
+	organizerID, exists := middleware.GetOrganizerID(c)
 	if !exists {
 		validator.UnauthorizedResponse(c, "User not authenticated")
 		return
@@ -187,7 +187,7 @@ func (h *EventHandler) UploadParticipants(c *gin.Context) {
 
 func (h *EventHandler) ListParticipant(c *gin.Context) {
 	// Dapatkan organizer id dari context
-	organizerID, exists := middleware.GetUserID(c)
+	organizerID, exists := middleware.GetOrganizerID(c)
 	if !exists {
 		validator.UnauthorizedResponse(c, "User not authenticated")
 		return

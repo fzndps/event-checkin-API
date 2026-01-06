@@ -66,7 +66,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) GetProfile(c *gin.Context) {
-	organizerID, ok := middleware.GetUserID(c)
+	organizerID, ok := middleware.GetOrganizerID(c)
 	if !ok {
 		validator.UnauthorizedResponse(c, "Organizer not authenticated")
 		return

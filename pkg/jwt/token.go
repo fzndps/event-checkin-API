@@ -8,7 +8,7 @@ import (
 )
 
 type JWTClaims struct {
-	OrganizerID int    `json:"organizer_id"`
+	OrganizerID int64  `json:"organizer_id"`
 	Email       string `json:"email"`
 	jwt.RegisteredClaims
 }
@@ -23,7 +23,7 @@ func NewJWTManager(secretKey string) *JWTManager {
 	}
 }
 
-func (m *JWTManager) GenerateToken(organizerID int, email string, expiryHours int) (string, error) {
+func (m *JWTManager) GenerateToken(organizerID int64, email string, expiryHours int) (string, error) {
 
 	if len(m.secretKey) == 0 {
 		return "", errors.New("JWT secret not initialize")

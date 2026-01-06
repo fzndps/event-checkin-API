@@ -81,7 +81,7 @@ func (u *AuthUsecase) Login(ctx context.Context, req *domain.LoginRequest) (*dom
 	return res, nil
 }
 
-func (u *AuthUsecase) GetProfileByID(ctx context.Context, organizerID int) (*domain.Organizer, error) {
+func (u *AuthUsecase) GetProfileByID(ctx context.Context, organizerID int64) (*domain.Organizer, error) {
 	organizer, err := u.organizerRepo.GetByID(ctx, organizerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get organizer by id %d: %v", organizerID, err)

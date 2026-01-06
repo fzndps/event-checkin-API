@@ -14,12 +14,14 @@ type QREmailTemplate struct {
 	EventName       string
 	EventDate       string
 	EventVenue      string
-	QRCodeBase64    string // Base64 encoded QR code untuk embed di HTML
-	CheckInURL      string // URL untuk check-in (optional)
+	QRCodeBase64    string // Base64 encoded QR code (for inline)
+	UseCID          bool   // Use CID instead of base64 inline
 }
 
 // BuildQRCodeEmail membuat HTML email dengan QR code
-func BuildQRCodeEmail(participant *domain.Participant, event *domain.Event, qrCodeBase64 string) string {
+// useCID=true untuk embedded image (lebih compatible)
+// useCID=false untuk base64 inline
+func BuildQRCodeEmail(participant *domain.Participant, event *domain.Event, qrCodeBase64 string, useCID bool) string {
 	// Format date
 	eventDate := event.Date.Format("Monday, 02 January 2006 at 15:04")
 
@@ -29,6 +31,7 @@ func BuildQRCodeEmail(participant *domain.Participant, event *domain.Event, qrCo
 		EventDate:       eventDate,
 		EventVenue:      event.Venue,
 		QRCodeBase64:    qrCodeBase64,
+		UseCID:          useCID,
 	}
 
 	tmpl := `
@@ -71,6 +74,7 @@ func BuildQRCodeEmail(participant *domain.Participant, event *domain.Event, qrCo
             max-width: 256px;
             height: auto;
             margin: 20px auto;
+            display: block;
         }
         .event-details {
             background: white;
@@ -118,7 +122,11 @@ func BuildQRCodeEmail(participant *domain.Participant, event *domain.Event, qrCo
         
         <div class="qr-container">
             <h3>Your QR Code</h3>
+            {{if .UseCID}}
+            <img src="cid:qrcode" alt="QR Code" class="qr-code">
+            {{else}}
             <img src="{{.QRCodeBase64}}" alt="QR Code" class="qr-code">
+            {{end}}
             <p style="color: #666; font-size: 14px;">
                 Please show this QR code at the registration desk
             </p>
@@ -194,7 +202,7 @@ func BuildQRCodeEmail(participant *domain.Participant, event *domain.Event, qrCo
 	return buf.String()
 }
 
-// BuildPlainTextEmail membuat plain text email (fallback untuk email client yang tidak support HTML)
+// BuildPlainTextEmail membuat plain text email
 func BuildPlainTextEmail(participant *domain.Participant, event *domain.Event) string {
 	eventDate := event.Date.Format("Monday, 02 January 2006 at 15:04")
 
@@ -223,7 +231,7 @@ EventCheck.in Team
 `
 }
 
-// BuildTestEmail membuat test email (untuk testing SMTP config)
+// BuildTestEmail membuat test email
 func BuildTestEmail(recipientName string) string {
 	return `
 <!DOCTYPE html>

@@ -240,6 +240,81 @@ func (r *participantRepository) UpdateCheckIn(ctx context.Context, participantID
 	return nil
 }
 
+func (r *participantRepository) MarkQRSent(ctx context.Context, participantID int64) error {
+	query := `
+		UPDATE participants
+		SET qr_sent = true, qr_sent_at = NOW()
+		WHERE id  = ?
+	`
+
+	result, err := r.db.ExecContext(ctx, query, participantID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return domain.ErrNotFound
+	}
+
+	return nil
+}
+
+func (r *participantRepository) GetPendingQR(ctx context.Context, eventID string) ([]*domain.Participant, error) {
+	query := `
+		SELECT 
+			id, event_id, name, email, phone, qr_token,
+			checked_in, checked_in_at, qr_sent, qr_sent_at, created_at
+		FROM participants
+		WHERE event_id = ? AND qr_sent = FALSE
+		ORDER BY created_at ASC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, eventID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var participants []*domain.Participant
+	for rows.Next() {
+		p := &domain.Participant{}
+		var checkedInAt, qrSentAt sql.NullTime
+
+		err := rows.Scan(
+			&p.ID,
+			&p.EventID,
+			&p.Name,
+			&p.Email,
+			&p.Phone,
+			&p.QRToken,
+			&p.CheckedIn,
+			&checkedInAt,
+			&p.QRSent,
+			&qrSentAt,
+			&p.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if checkedInAt.Valid {
+			p.CheckedInAt = &checkedInAt.Time
+		}
+		if qrSentAt.Valid {
+			p.QRSentAt = &qrSentAt.Time
+		}
+
+		participants = append(participants, p)
+	}
+
+	return participants, nil
+}
+
 // DeleteByEventID menghapus semua participant di event (cascade delete)
 func (r *participantRepository) DeleteByEventID(ctx context.Context, eventID string) error {
 	query := `DELETE FROM participants WHERE event_id = ?`

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 
 	"github.com/fzndps/eventcheck/internal/domain"
 	"github.com/fzndps/eventcheck/internal/domain/repository"
@@ -83,7 +84,7 @@ func (r *eventRepository) GetByID(ctx context.Context, id string) (*domain.Event
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.ErrEventNotFound
 		}
-
+		log.Print("error get by id:", err)
 		return nil, err
 	}
 

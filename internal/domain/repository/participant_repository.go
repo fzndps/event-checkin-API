@@ -30,6 +30,12 @@ type ParticipantRepository interface {
 	// UpdateCheckIn mengupdate status check-in participant
 	UpdateCheckIn(ctx context.Context, participantID int64) error
 
+	// MarkQRSent mengupdate status QR sudah dikirim
+	MarkQRSent(ctx context.Context, participantID int64) error
+
+	// GetPendingQR mendapatkan participants yang belum dikirim QR code
+	GetPendingQR(ctx context.Context, eventID string) ([]*domain.Participant, error)
+
 	// DeleteByEventID menghapus semua participant di event (cascade delete)
 	DeleteByEventID(ctx context.Context, eventID string) error
 }

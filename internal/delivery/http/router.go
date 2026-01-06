@@ -10,6 +10,7 @@ import (
 type RouterConfig struct {
 	AuthHandler    *AuthHandler
 	EventHandler   *EventHandler
+	QREmailHandler *QREmailHandler
 	AuthMiddleware *middleware.AuthMiddleware
 }
 
@@ -45,6 +46,13 @@ func SetupRouter(cfg *RouterConfig) *gin.Engine {
 			events.DELETE("/:eventID", cfg.EventHandler.DeleteEvent)
 			events.POST("/:eventID/participants/upload", cfg.EventHandler.UploadParticipants)
 			events.GET("/:eventID/participants", cfg.EventHandler.ListParticipant)
+
+			events.POST("/:eventID/send-qr", cfg.QREmailHandler.SendQRCodes)
+		}
+
+		email := v1.Group("/email")
+		{
+			email.POST("/test", cfg.QREmailHandler.SendTestEmail)
 		}
 	}
 

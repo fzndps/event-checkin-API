@@ -3,7 +3,7 @@ package domain
 import "time"
 
 type Organizer struct {
-	ID           int       `json:"id"`
+	ID           int64     `json:"id"`
 	Email        string    `json:"email"`
 	Name         string    `json:"name"`
 	PasswordHash string    `json:"-"`
@@ -27,7 +27,7 @@ type OrganizerLoginResponse struct {
 }
 
 type AuthResponse struct {
-	ID           int       `json:"id"`
+	ID           int64     `json:"id"`
 	Email        string    `json:"email"`
 	Name         string    `json:"name"`
 	PasswordHash string    `json:"-"`
