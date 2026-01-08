@@ -41,8 +41,8 @@ type SMTPConfig struct {
 	SMTPFrom     string
 }
 
-func LoadConfig() (*Config, error) {
-	if err := godotenv.Load(); err != nil {
+func LoadConfig(filename ...string) (*Config, error) {
+	if err := godotenv.Load(filename...); err != nil {
 		return nil, fmt.Errorf("error loading .env file: %w", err)
 	}
 

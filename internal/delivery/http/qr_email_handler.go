@@ -1,9 +1,12 @@
 package http
 
 import (
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/fzndps/eventcheck/internal/domain"
 	"github.com/fzndps/eventcheck/internal/usecase"
 	"github.com/fzndps/eventcheck/pkg/validator"
 	"github.com/gin-gonic/gin"
@@ -54,8 +57,9 @@ func (h *QREmailHandler) SendQRCodes(c *gin.Context) {
 		eventID,
 	)
 	if err != nil {
-		log.Print("error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Print("error:", err.Error())
+		statusCode, message := h.handleError(err)
+		c.JSON(statusCode, gin.H{"error": message})
 		return
 	}
 
@@ -82,6 +86,42 @@ func (h *QREmailHandler) SendQRCodes(c *gin.Context) {
 	})
 }
 
+func (h *QREmailHandler) ResendQRCode(c *gin.Context) {
+	// get organizer
+	organizerID, exists := c.Get("organizer_id")
+	if !exists {
+		validator.UnauthorizedResponse(c, "Unauthorized")
+		return
+	}
+
+	// get event ID
+	eventID := c.Param("eventID")
+
+	// get participant ID
+	participantIDStr := c.Param("participantID")
+	participantID, err := strconv.ParseInt(participantIDStr, 10, 64)
+	if err != nil {
+		validator.BadRequestResponse(c, "Invalid participan ID")
+		return
+	}
+
+	err = h.qrEmailUsecase.ResendQRCode(
+		c.Request.Context(),
+		organizerID.(int64),
+		eventID,
+		participantID,
+	)
+
+	if err != nil {
+		log.Print("error:", err.Error())
+		statusCode, message := h.handleError(err)
+		c.JSON(statusCode, gin.H{"error": message})
+		return
+	}
+
+	validator.SuccessResponse(c, "QR code successfully resent", nil)
+}
+
 // sendTesEmail testing email pada endpoint POST /api/email/test
 func (h *QREmailHandler) SendTestEmail(c *gin.Context) {
 	// reqeust body
@@ -106,15 +146,33 @@ func (h *QREmailHandler) SendTestEmail(c *gin.Context) {
 
 }
 
-// func (h *QREmailHandler) handleError(err error) (int, string) {
-// 	switch {
-// 	case errors.Is(err, domain.ErrEventNotFound):
-// 		return http.StatusNotFound, err.Error()
-// 	case errors.Is(err, domain.ErrUnauthorizedAccess):
-// 		return http.StatusForbidden, err.Error()
+func (h *QREmailHandler) handleError(err error) (int, string) {
+	switch {
+	case errors.Is(err, domain.ErrEventNotFound):
+		return http.StatusNotFound, err.Error()
+	case errors.Is(err, domain.ErrUnauthorizedAccess):
+		return http.StatusForbidden, err.Error()
 
+	default:
+		return http.StatusInternalServerError, "Internal server error"
+	}
+
+}
+
+// func (h *QREmailHandler) assert(c *gin.Context, organizerID any, organizerID64 int64) {
+
+// 	// FIX untuk Error 1 & Robustness:
+// 	// Gunakan Type Switch untuk menangani berbagai kemungkinan tipe angka dari Context
+// 	switch v := organizerID.(type) {
+// 	case int:
+// 		organizerID64 = int64(v)
+// 	case int64:
+// 		organizerID64 = v
+// 	case float64: // Jaga-jaga jika parser JWT mengembalikan float64
+// 		organizerID64 = int64(v)
 // 	default:
-// 		return http.StatusInternalServerError, "Internal server error"
+// 		// FIX untuk Error 2: Tambahkan return agar kode berhenti di sini jika error
+// 		validator.BadRequestResponse(c, "organizerID is not a valid number")
+// 		return
 // 	}
-
 // }

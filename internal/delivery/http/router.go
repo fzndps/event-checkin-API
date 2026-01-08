@@ -48,6 +48,8 @@ func SetupRouter(cfg *RouterConfig) *gin.Engine {
 			events.GET("/:eventID/participants", cfg.EventHandler.ListParticipant)
 
 			events.POST("/:eventID/send-qr", cfg.QREmailHandler.SendQRCodes)
+			events.POST("/:eventID/participants/:participantID/resend-qr", cfg.QREmailHandler.ResendQRCode)
+
 		}
 
 		email := v1.Group("/email")

@@ -104,7 +104,7 @@ func (u *QREmailUsecae) SendQRCodes(ctx context.Context, organizerID int64, even
 		}
 
 		emailsSent++
-		log.Printf("✅ QR code sent to %s (%s)", participant.Name, participant.Email)
+		log.Printf("QR code sent to %s (%s)", participant.Name, participant.Email)
 	}
 
 	res := &domain.SendQRCodesResponse{
@@ -117,8 +117,64 @@ func (u *QREmailUsecae) SendQRCodes(ctx context.Context, organizerID int64, even
 	return res, nil
 }
 
-func (u QREmailUsecae) ResendQRCode(ctx context.Context, organizerID int64, eventID string) error {
-	// TODO : Implementasi GetByID di participant repo
+func (u QREmailUsecae) ResendQRCode(ctx context.Context, organizerID int64, eventID string, participanID int64) error {
+	// cek authorization untuk event
+	isOwned, err := u.eventRepo.IsOwnedBy(ctx, eventID, organizerID)
+	if err != nil {
+		return fmt.Errorf("This event does not belong to the organizer :%v", err)
+	}
+
+	if !isOwned {
+		return domain.ErrUnauthorizedAccess
+	}
+
+	// get participan
+	participant, err := u.participantRepo.GetByID(ctx, participanID)
+	if err != nil {
+		return fmt.Errorf("failed to get participant: %v", err)
+	}
+
+	if participant.EventID != eventID {
+		return domain.ErrUnauthorizedAccess
+	}
+
+	// get detail event
+	event, err := u.eventRepo.GetByID(ctx, eventID)
+	if err != nil {
+		return fmt.Errorf("failed to get detail event: %v", err)
+	}
+
+	// generate qr code
+	qrByte, err := u.qrGenerator.GenerateQRCode(participant.QRToken, 256)
+	if err != nil {
+		return fmt.Errorf("failed to generate QR code: %w", err)
+	}
+
+	// build email HTML
+	emailBody := email.BuildQRCodeEmail(participant, event, "", true)
+
+	// send email
+	subject := fmt.Sprintf("Your QR code for %s (Resent)", event.Name)
+	err = u.emailService.SendEmailWithEmbeddedImage(
+		participant.Email,
+		subject,
+		emailBody,
+		qrByte,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to send email: %w", err)
+	}
+
+	if !participant.QRSent {
+		err := u.participantRepo.MarkQRSent(ctx, participant.ID)
+		if err != nil {
+			return fmt.Errorf("failed to mark QR sent for participant %d: %v", participant.ID, err)
+		}
+	}
+
+	log.Printf("QR code resent to %s (%s)", participant.Name, participant.Email)
+
 	return nil
 }
 

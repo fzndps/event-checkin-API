@@ -12,8 +12,10 @@ type ParticipantRepository interface {
 	Create(ctx context.Context, participant *domain.Participant) error
 
 	// BulkCreate menyimpan banyak participants sekaligus (untuk CSV upload)
-	// Menggunakan transaction untuk atomicity: all or nothing
 	BulkCreate(ctx context.Context, participants []*domain.Participant) error
+
+	// GetByID mencari participant berdasarkan ID
+	GetByID(ctx context.Context, id int64) (*domain.Participant, error)
 
 	// GetByEventID mencari semua participant di event tertentu
 	GetByEventID(ctx context.Context, eventID string) ([]*domain.Participant, error)
