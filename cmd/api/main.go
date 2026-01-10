@@ -44,11 +44,13 @@ func main() {
 	eventUsecase := usecase.NewEventUsecase(eventRepo, participantRepo)
 	participantUsecase := usecase.NewParticipantUsecase(eventRepo, participantRepo)
 	qrEmailUsecase := usecase.NewQREmailUsecase(eventRepo, participantRepo, qrGenerator, emailService)
+	checkInUsecase := usecase.NewCheckInUsecase(eventRepo, participantRepo)
 
 	// initialize handler layer
 	authHandler := http.NewAutHandler(authUsecase)
-	eventHandler := http.NewEventHandler(*eventUsecase, participantUsecase)
+	eventHandler := http.NewEventHandler(eventUsecase, participantUsecase)
 	qrEmailHandler := http.NewQREmailHandler(qrEmailUsecase)
+	checkInHandler := http.NewCheckInHandler(checkInUsecase)
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager)
 
@@ -56,6 +58,7 @@ func main() {
 		AuthHandler:    authHandler,
 		EventHandler:   eventHandler,
 		QREmailHandler: qrEmailHandler,
+		CheckInHandler: checkInHandler,
 		AuthMiddleware: authMiddleware,
 	})
 

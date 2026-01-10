@@ -11,14 +11,14 @@ import (
 )
 
 type EventHandler struct {
-	eventUsecase       usecase.EventUsecase
-	participantUsecase usecase.ParticipantUsecase
+	eventUsecase       *usecase.EventUsecase
+	participantUsecase *usecase.ParticipantUsecase
 }
 
-func NewEventHandler(eventUsecase usecase.EventUsecase, participantUsecase *usecase.ParticipantUsecase) *EventHandler {
+func NewEventHandler(eventUsecase *usecase.EventUsecase, participantUsecase *usecase.ParticipantUsecase) *EventHandler {
 	return &EventHandler{
 		eventUsecase:       eventUsecase,
-		participantUsecase: *participantUsecase,
+		participantUsecase: participantUsecase,
 	}
 }
 
