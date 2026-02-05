@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/fzndps/eventcheck/internal/domain"
 	"github.com/fzndps/eventcheck/internal/domain/repository"
@@ -65,8 +66,10 @@ func (u *QREmailUsecae) SendQRCodes(ctx context.Context, organizerID int64, even
 	}
 
 	// 4. Generate & send emails
-	var emailsSent, emailsFailed int
-	var failedEmails []string
+	var (
+		emailsSent, emailsFailed int
+		failedEmails             []string
+	)
 
 	for _, participant := range participants {
 		// Generate QR code as PNG bytes (for CID embedding)
@@ -105,6 +108,7 @@ func (u *QREmailUsecae) SendQRCodes(ctx context.Context, organizerID int64, even
 
 		emailsSent++
 		log.Printf("QR code sent to %s (%s)", participant.Name, participant.Email)
+		time.Sleep(10 * time.Second)
 	}
 
 	res := &domain.SendQRCodesResponse{

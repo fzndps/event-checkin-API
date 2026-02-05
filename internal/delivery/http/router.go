@@ -11,6 +11,7 @@ type RouterConfig struct {
 	AuthHandler    *AuthHandler
 	EventHandler   *EventHandler
 	QREmailHandler *QREmailHandler
+	CheckInHandler *CheckInHandler
 	AuthMiddleware *middleware.AuthMiddleware
 }
 
@@ -25,6 +26,8 @@ func SetupRouter(cfg *RouterConfig) *gin.Engine {
 			"message": "EventCheck.in API is running",
 		})
 	})
+
+	// router.LoadHTMLGlob("templates/*")
 
 	v1 := router.Group("/api/v1")
 	{
@@ -49,13 +52,25 @@ func SetupRouter(cfg *RouterConfig) *gin.Engine {
 
 			events.POST("/:eventID/send-qr", cfg.QREmailHandler.SendQRCodes)
 			events.POST("/:eventID/participants/:participantID/resend-qr", cfg.QREmailHandler.ResendQRCode)
+		}
 
+		scan := v1.Group("/scan")
+		scan.Use(cfg.AuthMiddleware.AuthRequired())
+		{
+			scan.POST("/:event_slug/verify", cfg.CheckInHandler.VerifyPIN)
+			scan.POST("/checkin", cfg.CheckInHandler.CheckedIn)
+			scan.GET("/stats/:event_slug", cfg.CheckInHandler.GetEventStats)
 		}
 
 		email := v1.Group("/email")
 		{
 			email.POST("/test", cfg.QREmailHandler.SendTestEmail)
 		}
+
+		// apiScan := v1.Group("/scan")
+		// {
+		// apiScan.GET("/:event_slug", cfg.CheckInHandler.GetScanPage)
+		// }
 	}
 
 	return router

@@ -15,6 +15,14 @@ var (
 	ErrInvalidEventDate   = errors.New("invalid event date (cannot be in the past)")
 	ErrSlugAlreadyExists  = errors.New("event slug already in use")
 	ErrUnauthorizedAccess = errors.New("you do not have access to this event")
+	ErrScannerPIN         = errors.New("invalid scanner PIN")
+
+	// Check-in errors
+	ErrInvalidPIN       = errors.New("Invalid PIN scanner")
+	ErrInvalidQRToken   = errors.New("Invalid QR code")
+	ErrQRTokenNotFound  = errors.New("QR code not found")
+	ErrAlreadyCheckedIn = errors.New("participants have already checked in")
+	ErrQRTokenExpired   = errors.New("The QR code is no longer valid.")
 
 	//General errors
 	ErrNotFound       = errors.New("data tidak ditemukan")

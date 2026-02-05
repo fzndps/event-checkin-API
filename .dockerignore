@@ -1,0 +1,28 @@
+# Mengabaikan binary hasil compile local
+main
+*.exe
+*.bin
+
+# Mengabaikan folder dependensi 
+vendor/
+./templates
+
+# Mengabaikan git & log
+.git
+.gitignore
+*.log
+
+# Mengabaikan file docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Mengabaikan file environment asli
+.env
+*.local
+.env.example
+
+# Mengabaikan folder OS/IDE
+.vscode/
+.idea/
+/DS_Store

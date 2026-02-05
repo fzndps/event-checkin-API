@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner - {{.EventName}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .pin-section, .scanner-section {
+            display: none;
+        }
+        
+        .pin-section.active, .scanner-section.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .participant-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .participant-info h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+        
+        .participant-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+        
+        #qrInput {
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎫 Event Scanner</h1>
+            <p>{{.EventName}}</p>
+            <p style="font-size: 12px; margin-top: 5px;">{{.EventDate}} • {{.Venue}}</p>
+        </div>
+        
+        <div class="content">
+            <!-- PIN Section -->
+            <div class="pin-section active">
+                <div class="alert" id="pinAlert"></div>
+                
+                <h3 style="margin-bottom: 20px;">Enter Scanner PIN</h3>
+                
+                <form id="pinForm">
+                    <div class="form-group">
+                        <label for="pinInput">4-Digit PIN</label>
+                        <input type="password" id="pinInput" maxlength="4" pattern="[0-9]{4}" 
+                               placeholder="Enter PIN" autocomplete="off" required>
+                    </div>
+                    
+                    <button type="submit" id="pinBtn">Verify PIN</button>
+                </form>
+            </div>
+            
+            <!-- Scanner Section -->
+            <div class="scanner-section">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalCount">0</div>
+                        <div class="stat-label">Total Participants</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="checkedInCount">0</div>
+                        <div class="stat-label">Checked In</div>
+                    </div>
+                </div>
+                
+                <div class="alert" id="scanAlert"></div>
+                
+                <form id="scanForm">
+                    <div class="form-group">
+                        <label for="qrInput">Scan QR Code</label>
+                        <input type="text" id="qrInput" placeholder="Focus here and scan QR code" 
+                               autocomplete="off" autofocus>
+                    </div>
+                    
+                    <button type="submit" id="scanBtn">Check In</button>
+                </form>
+                
+                <div class="participant-info" id="participantInfo" style="display: none;">
+                    <h4>Participant Details</h4>
+                    <p><strong>Name:</strong> <span id="pName"></span></p>
+                    <p><strong>Email:</strong> <span id="pEmail"></span></p>
+                    <p><strong>Status:</strong> <span id="pStatus"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const eventSlug = '{{.EventSlug}}';
+        let eventId = null;
+        
+        // PIN Form Handler
+        document.getElementById('pinForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const pinInput = document.getElementById('pinInput');
+            const pinBtn = document.getElementById('pinBtn');
+            const pinAlert = document.getElementById('pinAlert');
+            
+            pinBtn.disabled = true;
+            pinBtn.textContent = 'Verifying...';
+            
+            try {
+                const response = await fetch(`/api/v1/scan/${eventSlug}/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        // event_slug: eventSlug,
+                        scanner_pin: pinInput.value
+                    })
+                });
+                
+                const data = await response.json();
+                
+                const result = data.data || data;
+                if (result.valid) {
+                    eventId = result.event_id;
+                    showAlert(pinAlert, 'success', result.message);
+                    
+                    setTimeout(() => {
+                        document.querySelector('.pin-section').classList.remove('active');
+                        document.querySelector('.scanner-section').classList.add('active');
+                        loadStats();
+                        document.getElementById('qrInput').focus();
+                    }, 1000);
+                } else {
+                    showAlert(pinAlert, 'error', result.message);
+                    pinInput.value = '';
+                    pinInput.focus();
+                }
+            } catch (error) {
+                showAlert(pinAlert, 'error', 'Connection error. Please try again.');
+            }
+            
+            pinBtn.disabled = false;
+            pinBtn.textContent = 'Verify PIN';
+        });
+        
+        // Scan Form Handler
+        document.getElementById('scanForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const qrInput = document.getElementById('qrInput');
+            const scanBtn = document.getElementById('scanBtn');
+            const scanAlert = document.getElementById('scanAlert');
+            const participantInfo = document.getElementById('participantInfo');
+            
+            if (!qrInput.value.trim()) return;
+            
+            scanBtn.disabled = true;
+            participantInfo.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/v1/scan/checkin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        qr_token: qrInput.value.trim()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(scanAlert, 'success', data.message);
+                    showParticipantInfo(data.participant, 'Checked In ✓');
+                    loadStats(); // Refresh stats
+                } else {
+                    const alertType = data.already_checked_in ? 'warning' : 'error';
+                    showAlert(scanAlert, alertType, data.message);
+                    
+                    if (data.participant) {
+                        const status = data.already_checked_in 
+                            ? `Already checked in at ${new Date(data.checked_in_at).toLocaleString()}`
+                            : 'Not Checked In';
+                        showParticipantInfo(data.participant, status);
+                    }
+                }
+                
+                qrInput.value = '';
+                qrInput.focus();
+            } catch (error) {
+                showAlert(scanAlert, 'error', 'Connection error. Please try again.');
+            }
+            
+            scanBtn.disabled = false;
+        });
+        
+        // Auto-clear input after 3 seconds of inactivity
+        let clearTimer;
+        document.getElementById('qrInput').addEventListener('input', () => {
+            clearTimeout(clearTimer);
+            clearTimer = setTimeout(() => {
+                document.getElementById('qrInput').value = '';
+            }, 3000);
+        });
+        
+        // Load Stats
+        async function loadStats() {
+            try {
+                const response = await fetch(`/api/v1/scan/stats/${eventSlug}`);
+                const result = await response.json();
+                
+                if (result.data) {
+                    document.getElementById('totalCount').textContent = result.data.total_participants;
+                    document.getElementById('checkedInCount').textContent = result.data.checked_in_count;
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+        
+        // Show Alert
+        function showAlert(element, type, message) {
+            element.className = `alert ${type} show`;
+            element.textContent = message;
+            
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Show Participant Info
+        function showParticipantInfo(participant, status) {
+            document.getElementById('pName').textContent = participant.name;
+            document.getElementById('pEmail').textContent = participant.email;
+            document.getElementById('pStatus').textContent = status;
+            document.getElementById('participantInfo').style.display = 'block';
+        }
+        
+        // Auto-refresh stats every 10 seconds
+        setInterval(() => {
+            if (document.querySelector('.scanner-section').classList.contains('active')) {
+                loadStats();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>

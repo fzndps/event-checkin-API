@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>500 - Internal Server Error</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top, #1e293b, #020617);
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      max-width: 440px;
+      padding: 40px;
+      background: rgba(2, 6, 23, 0.95);
+      border-radius: 18px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    h1 {
+      font-size: 64px;
+      margin: 0;
+      color: #f87171;
+    }
+
+    h2 {
+      margin-top: 14px;
+      font-weight: 600;
+    }
+
+    p {
+      color: #94a3b8;
+      margin: 18px 0 30px;
+      line-height: 1.5;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 20px;
+    }
+
+    a {
+      display: inline-block;
+      padding: 12px 26px;
+      border-radius: 12px;
+      background: #f87171;
+      color: #020617;
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.2s ease;
+    }
+
+    a:hover {
+      background: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>500</h1>
+    <h2>Internal Server Error</h2>
+    <p>
+      Terjadi kesalahan di server kami.<br />
+      Tim kami sudah mencatat masalah ini.
+    </p>
+    <a href="/">Refresh / Kembali</a>
+    <div class="hint">
+      Jika masalah berlanjut, silakan coba beberapa saat lagi.
+    </div>
+  </div>
+</body>
+</html>

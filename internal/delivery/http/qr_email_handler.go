@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -51,38 +52,58 @@ func (h *QREmailHandler) SendQRCodes(c *gin.Context) {
 	eventID := c.Param("eventID")
 
 	// Call usecase
-	response, err := h.qrEmailUsecase.SendQRCodes(
-		c.Request.Context(),
-		organizerID64,
-		eventID,
-	)
-	if err != nil {
-		log.Print("error:", err.Error())
-		statusCode, message := h.handleError(err)
-		c.JSON(statusCode, gin.H{"error": message})
-		return
-	}
+	// response, err := h.qrEmailUsecase.SendQRCodes(
+	// 	c.Request.Context(),
+	// 	organizerID64,
+	// 	eventID,
+	// )
 
-	statusCode := http.StatusOK
-	message := "The QR code has been successfully sent."
+	go func() {
+		bgCtx := context.Background()
 
-	if response.EmailsFailed > 0 {
-		statusCode = http.StatusMultiStatus
-		message = "QR codes were sent with several failures"
-	}
+		_, err := h.qrEmailUsecase.SendQRCodes(
+			bgCtx,
+			organizerID64,
+			eventID,
+		)
 
-	if response.EmailsSent == 0 && response.EmailsFailed > 0 {
-		statusCode = http.StatusInternalServerError
-		message = "Failed to send all QR codes"
-	}
+		if err != nil {
+			log.Printf("[SendQRCodes] error: %v", err)
+		}
+	}()
 
-	if response.TotalParticipants == 0 {
-		message = "All QR codes have already been sent"
-	}
+	// if err != nil {
+	// 	log.Print("error:", err.Error())
+	// 	statusCode, message := h.handleError(err)
+	// 	c.JSON(statusCode, gin.H{"error": message})
+	// 	return
+	// }
 
-	c.JSON(statusCode, gin.H{
-		"message": message,
-		"data":    response,
+	// statusCode := http.StatusOK
+	// message := "The QR code has been successfully sent."
+
+	// if response.EmailsFailed > 0 {
+	// 	statusCode = http.StatusMultiStatus
+	// 	message = "QR codes were sent with several failures"
+	// }
+
+	// if response.EmailsSent == 0 && response.EmailsFailed > 0 {
+	// 	statusCode = http.StatusInternalServerError
+	// 	message = "Failed to send all QR codes"
+	// }
+
+	// if response.TotalParticipants == 0 {
+	// 	message = "All QR codes have already been sent"
+	// }
+
+	// c.JSON(statusCode, gin.H{
+	// 	"message": message,
+	// 	"data":    response,
+	// })
+
+	c.JSON(http.StatusAccepted, gin.H{
+		"message": "QR sending process started",
+		// "data":    response,
 	})
 }
 
