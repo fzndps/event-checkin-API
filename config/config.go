@@ -43,7 +43,7 @@ type SMTPConfig struct {
 
 func LoadConfig(filename ...string) (*Config, error) {
 	if err := godotenv.Load(filename...); err != nil {
-		return nil, fmt.Errorf("error loading .env file: %w", err)
+		fmt.Println("Info: .env file not found, using system environment variables")
 	}
 
 	config := &Config{

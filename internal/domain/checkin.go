@@ -4,7 +4,7 @@ import "time"
 
 // VerifyPINRequest adalah request untuk verify scanner PIN
 type VerifyPINRequest struct {
-	// EventSlug  string `json:"event_slug" binding:"required"`
+	EventSlug  string `json:"event_slug"`
 	ScannerPIN string `json:"scanner_pin" binding:"required,len=4"`
 }
 

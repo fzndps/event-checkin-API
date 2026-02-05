@@ -27,7 +27,7 @@ func SetupRouter(cfg *RouterConfig) *gin.Engine {
 		})
 	})
 
-	router.LoadHTMLGlob("templates/*")
+	// router.LoadHTMLGlob("templates/*")
 
 	v1 := router.Group("/api/v1")
 	{
@@ -52,7 +52,14 @@ func SetupRouter(cfg *RouterConfig) *gin.Engine {
 
 			events.POST("/:eventID/send-qr", cfg.QREmailHandler.SendQRCodes)
 			events.POST("/:eventID/participants/:participantID/resend-qr", cfg.QREmailHandler.ResendQRCode)
+		}
 
+		scan := v1.Group("/scan")
+		scan.Use(cfg.AuthMiddleware.AuthRequired())
+		{
+			scan.POST("/:event_slug/verify", cfg.CheckInHandler.VerifyPIN)
+			scan.POST("/checkin", cfg.CheckInHandler.CheckedIn)
+			scan.GET("/stats/:event_slug", cfg.CheckInHandler.GetEventStats)
 		}
 
 		email := v1.Group("/email")
@@ -60,13 +67,10 @@ func SetupRouter(cfg *RouterConfig) *gin.Engine {
 			email.POST("/test", cfg.QREmailHandler.SendTestEmail)
 		}
 
-		apiScan := v1.Group("/scan")
-		{
-			apiScan.GET("/:event_slug", cfg.CheckInHandler.GetScanPage)
-			apiScan.POST("/:event_slug/verify", cfg.CheckInHandler.VerifyPIN)
-			apiScan.POST("/checkin", cfg.CheckInHandler.CheckedIn)
-			apiScan.GET("/stats/:event_slug", cfg.CheckInHandler.GetEventStats)
-		}
+		// apiScan := v1.Group("/scan")
+		// {
+		// apiScan.GET("/:event_slug", cfg.CheckInHandler.GetScanPage)
+		// }
 	}
 
 	return router
